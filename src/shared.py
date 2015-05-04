@@ -15,7 +15,7 @@ import os
 import pickle
 import Queue
 import random
-import socket
+from i2p import socket
 import sys
 import stat
 import threading
@@ -33,7 +33,7 @@ import shared
 #import helper_startup
 from helper_sql import *
 
-
+i2psession = 'i2pbm'
 config = ConfigParser.SafeConfigParser()
 myECCryptorObjects = {}
 MyECSubscriptionCryptorObjects = {}
@@ -134,14 +134,14 @@ def isInSqlInventory(hash):
     queryreturn = sqlQuery('''select hash from inventory where hash=?''', hash)
     return queryreturn != []
 
-def encodeHost(host):
-    if host.find(':') == -1:
-        return '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF' + \
-            socket.inet_aton(host)
-    else:
-        return socket.inet_pton(socket.AF_INET6, host)
+# def encodeHost(host):
+#     if host.find(':') == -1:
+#         return '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF' + \
+#             socket.inet_aton(host)
+#     else:
+#         return socket.inet_pton(socket.AF_INET6, host)
 
-def assembleVersionMessage(remoteHost, remotePort, myStreamNumber):
+def assembleVersionMessage(remoteDest, myStreamNumber):
     payload = ''
     payload += pack('>L', 3)  # protocol version.
     payload += pack('>q', 1)  # bitflags of the services I offer.
@@ -149,14 +149,11 @@ def assembleVersionMessage(remoteHost, remotePort, myStreamNumber):
 
     payload += pack(
         '>q', 1)  # boolservices of remote connection; ignored by the remote host.
-    payload += encodeHost(remoteHost)
-    payload += pack('>H', remotePort)  # remote IPv6 and port
+    payload += remoteDest
 
     payload += pack('>q', 1)  # bitflags of the services I offer.
-    payload += '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF' + pack(
-        '>L', 2130706433)  # = 127.0.0.1. This will be ignored by the remote host. The actual remote connected IP will be used.
-    payload += pack('>H', shared.config.getint(
-        'bitmessagesettings', 'port'))
+    payload += 'VXVZRtml-XDgkwFcehckXBQ1qOx8whwjYlPZnKyIp3L5OFhwF6moUjkAoN~4J5TmdBLP5jxoOEwe5pC6TcgkKAvEXLqGvb607LPr9XhhWdgfHFyfcEG1zGhMziisOSHwmnUAjlvd5FT9H7ouv2on5JvLAHRiqe-vO0Ifz~dnkQyhd-IouWArdTlXQqhm7ArMS1-vHQKaslktY9BrFS8ZxKojbAMxcrBrt-9IND1f9-KpRBwtKp0Hup6jzIk3cNGbP4eadZ3F-Zic6oy-ktsH0iz5FBKmpMdc36SQDG8rReMjngKZntl4OhxjAZ7eYLllA6T3X5wdICkoqNJEobByGx9TEYXq6bVlyp7aoxGuB8~piqJWoCqbgfcIDUznP050YoCKp3Uk6u9DmROP4pckzg910FdKSF3TRlebKRRzB7KHWXV~CY3xZEp8CKblBljJEw3FNv0IZ5Guq0tNi9bjs6uXtY1IPviEN9cVfmT3EZ5WK8b~3JdvZrDGKoWAJkRAAAAA'
+                # This will be ignored by the remote host. The actual remote connected IP will be used.
 
     random.seed()
     payload += eightBytesOfRandomDataUsedToDetectConnectionsToSelf
@@ -580,7 +577,7 @@ def decryptAndCheckPubkeyPayload(data, address):
         logger.critical('Pubkey decryption was UNsuccessful because of an unhandled exception! This is definitely a bug! \n%s' % traceback.format_exc())
         return 'failed'
 
-Peer = collections.namedtuple('Peer', ['host', 'port'])
+Peer = collections.namedtuple('Peer', ['dest'])
 
 def checkAndShareObjectWithPeers(data):
     """

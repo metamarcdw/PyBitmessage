@@ -6,7 +6,7 @@ from struct import unpack, pack
 import hashlib
 import random
 import sys
-import socket
+from i2p import socket
 
 from helper_generic import addDataPadding
 from class_objectHashHolder import *
@@ -29,12 +29,11 @@ class sendDataThread(threading.Thread):
     def setup(
         self,
         sock,
-        HOST,
-        PORT,
+        DEST,
         streamNumber,
             someObjectsOfWhichThisRemoteNodeIsAlreadyAware):
         self.sock = sock
-        self.peer = shared.Peer(HOST, PORT)
+        self.peer = shared.Peer(DEST)
         self.streamNumber = streamNumber
         self.remoteProtocolVersion = - \
             1  # This must be set using setRemoteProtocolVersion command which is sent through the self.sendDataThreadQueue queue.
@@ -47,7 +46,7 @@ class sendDataThread(threading.Thread):
 
     def sendVersionMessage(self):
         datatosend = shared.assembleVersionMessage(
-            self.peer.host, self.peer.port, self.streamNumber)  # the IP and port of the remote host, and my streamNumber.
+            self.peer.dest, self.streamNumber)  # the IP and port of the remote host, and my streamNumber.
 
         with shared.printLock:
             print 'Sending version packet: ', repr(datatosend)
@@ -123,14 +122,13 @@ class sendDataThread(threading.Thread):
                         numberOfAddressesInAddrMessage = len(data)
                         payload = ''
                         for hostDetails in data:
-                            timeLastReceivedMessageFromThisNode, streamNumber, services, host, port = hostDetails
+                            timeLastReceivedMessageFromThisNode, streamNumber, services, dest = hostDetails
                             payload += pack(
                                 '>Q', timeLastReceivedMessageFromThisNode)  # now uses 64-bit time
                             payload += pack('>I', streamNumber)
                             payload += pack(
                                 '>q', services)  # service bit flags offered by this node
-                            payload += shared.encodeHost(host)
-                            payload += pack('>H', port)
+                            payload += dest
     
                         payload = encodeVarint(numberOfAddressesInAddrMessage) + payload
                         packet = shared.CreatePacket('addr', payload)
