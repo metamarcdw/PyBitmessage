@@ -34,9 +34,7 @@ class outgoingSynSender(threading.Thread):
             try:
                 peer, = random.sample(shared.knownNodes[self.streamNumber], 1)
             except ValueError:
-                with shared.printLock:
-                    print "knownNodes is empty. Cannot _getPeer"
-                    return None
+                peer = None
         shared.knownNodesLock.release()
 
         return peer
@@ -61,6 +59,8 @@ class outgoingSynSender(threading.Thread):
                 random.seed()
                 peer = self._getPeer()
                 time.sleep(1)
+                if not peer:
+                    break
                 # Clear out the shared.alreadyAttemptedConnectionsList every half
                 # hour so that this program will again attempt a connection
                 # to any nodes, even ones it has already tried.
