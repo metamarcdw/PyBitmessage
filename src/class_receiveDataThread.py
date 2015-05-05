@@ -4,7 +4,7 @@ import time
 import threading
 import shared
 import hashlib
-import socket
+from i2p import socket
 import random
 from struct import unpack, pack
 import sys
@@ -15,7 +15,7 @@ import traceback
 
 #import highlevelcrypto
 from addresses import *
-from helper_generic import addDataPadding, isHostInPrivateIPRange
+from helper_generic import addDataPadding
 from helper_sql import sqlQuery
 from debug import logger
 
@@ -33,21 +33,20 @@ class receiveDataThread(threading.Thread):
     def setup(
         self,
         sock,
-        HOST,
-        port,
+        DEST,
         streamNumber,
         someObjectsOfWhichThisRemoteNodeIsAlreadyAware,
         selfInitiatedConnections,
         sendDataThreadQueue):
         
         self.sock = sock
-        self.peer = shared.Peer(HOST, port)
+        self.peer = shared.Peer(DEST)
         self.streamNumber = streamNumber
         self.objectsThatWeHaveYetToGetFromThisPeer = {}
         self.selfInitiatedConnections = selfInitiatedConnections
         self.sendDataThreadQueue = sendDataThreadQueue # used to send commands and data to the sendDataThread
         shared.connectedHostsList[
-            self.peer.host] = 0  # The very fact that this receiveData thread exists shows that we are connected to the remote host. Let's add it to this list so that an outgoingSynSender thread doesn't try to connect to it.
+            self.peer.dest] = 0  # The very fact that this receiveData thread exists shows that we are connected to the remote host. Let's add it to this list so that an outgoingSynSender thread doesn't try to connect to it.
         self.connectionIsOrWasFullyEstablished = False  # set to true after the remote node and I accept each other's version messages. This is needed to allow the user interface to accurately reflect the current number of connections.
         if self.streamNumber == -1:  # This was an incoming connection. Send out a version message if we accept the other node's version message.
             self.initiatedConnection = False
@@ -80,7 +79,7 @@ class receiveDataThread(threading.Thread):
                 self.data += dataRecv
                 shared.numberOfBytesReceived += len(dataRecv) # for the 'network status' UI tab. The UI clears this value whenever it updates.
                 shared.numberOfBytesReceivedLastSecond += len(dataRecv) # for the download rate limit
-            except socket.timeout:
+            except socket.Timeout:
                 with shared.printLock:
                     print 'Timeout occurred waiting for data from', self.peer, '. Closing receiveData thread. (ID:', str(id(self)) + ')'
                 break
@@ -104,10 +103,10 @@ class receiveDataThread(threading.Thread):
             pass
         self.sendDataThreadQueue.put((0, 'shutdown','no data')) # commands the corresponding sendDataThread to shut itself down.
         try:
-            del shared.connectedHostsList[self.peer.host]
+            del shared.connectedHostsList[self.peer.dest]
         except Exception as err:
             with shared.printLock:
-                print 'Could not delete', self.peer.host, 'from shared.connectedHostsList.', err
+                print 'Could not delete', self.peer.dest, 'from shared.connectedHostsList.', err
 
         try:
             del shared.numberOfObjectsThatWeHaveYetToGetPerPeer[
@@ -267,7 +266,7 @@ class receiveDataThread(threading.Thread):
             print 'broadcasting addr from within connectionFullyEstablished function.'
 
         # Let all of our peers know about this new node.
-        dataToSend = (int(time.time()), self.streamNumber, 1, self.peer.host, self.remoteNodeIncomingPort)
+        dataToSend = (int(time.time()), self.streamNumber, 1, self.peer.dest)
         shared.broadcastToSendDataQueues((
             self.streamNumber, 'advertisepeer', dataToSend))
 
@@ -483,31 +482,6 @@ class receiveDataThread(threading.Thread):
         self.sendDataThreadQueue.put((0, 'sendRawData', shared.CreatePacket('object',payload)))
 
 
-    def _checkIPv4Address(self, host, hostStandardFormat):
-        # print 'hostStandardFormat', hostStandardFormat
-        if host[0] == '\x7F':
-            print 'Ignoring IP address in loopback range:', hostStandardFormat
-            return False
-        if host[0] == '\x0A':
-            print 'Ignoring IP address in private range:', hostStandardFormat
-            return False
-        if host[0:2] == '\xC0\xA8':
-            print 'Ignoring IP address in private range:', hostStandardFormat
-            return False
-        return True
-
-    def _checkIPv6Address(self, host, hostStandardFormat):
-        if host == ('\x00' * 15) + '\x01':
-            print 'Ignoring loopback address:', hostStandardFormat
-            return False
-        if host[0] == '\xFE' and (ord(host[1]) & 0xc0) == 0x80:
-            print 'Ignoring local address:', hostStandardFormat
-            return False
-        if (ord(host[0]) & 0xfe) == 0xfc:
-            print 'Ignoring unique local address:', hostStandardFormat
-            return False
-        return True
-
     # We have received an addr message.
     def recaddr(self, data):
         numberOfAddressesIncluded, lengthOfNumberOfAddresses = decodeVarint(
@@ -524,7 +498,7 @@ class receiveDataThread(threading.Thread):
             return
 
         for i in range(0, numberOfAddressesIncluded):
-            fullHost = data[20 + lengthOfNumberOfAddresses + (38 * i):36 + lengthOfNumberOfAddresses + (38 * i)]
+            fullDest = data[20 + lengthOfNumberOfAddresses + (38 * i):536 + lengthOfNumberOfAddresses + (38 * i)]
             recaddrStream, = unpack('>I', data[8 + lengthOfNumberOfAddresses + (
                 38 * i):12 + lengthOfNumberOfAddresses + (38 * i)])
             if recaddrStream == 0:
@@ -533,27 +507,13 @@ class receiveDataThread(threading.Thread):
                 continue
             recaddrServices, = unpack('>Q', data[12 + lengthOfNumberOfAddresses + (
                 38 * i):20 + lengthOfNumberOfAddresses + (38 * i)])
-            recaddrPort, = unpack('>H', data[36 + lengthOfNumberOfAddresses + (
-                38 * i):38 + lengthOfNumberOfAddresses + (38 * i)])
-            if fullHost[0:12] == '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF':
-                ipv4Host = fullHost[12:]
-                hostStandardFormat = socket.inet_ntop(socket.AF_INET, ipv4Host)
-                if not self._checkIPv4Address(ipv4Host, hostStandardFormat):
-                    continue
-            else:
-                hostStandardFormat = socket.inet_ntop(socket.AF_INET6, fullHost)
-                if hostStandardFormat == "":
-                    # This can happen on Windows systems which are not 64-bit compatible 
-                    # so let us drop the IPv6 address. 
-                    continue
-                if not self._checkIPv6Address(fullHost, hostStandardFormat):
-                    continue
+
             timeSomeoneElseReceivedMessageFromThisNode, = unpack('>Q', data[lengthOfNumberOfAddresses + (
                 38 * i):8 + lengthOfNumberOfAddresses + (38 * i)])  # This is the 'time' value in the received addr message. 64-bit.
             if recaddrStream not in shared.knownNodes:  # knownNodes is a dictionary of dictionaries with one outer dictionary for each stream. If the outer stream dictionary doesn't exist yet then we must make it.
                 with shared.knownNodesLock:
                     shared.knownNodes[recaddrStream] = {}
-            peerFromAddrMessage = shared.Peer(hostStandardFormat, recaddrPort)
+            peerFromAddrMessage = shared.Peer(fullDest)
             if peerFromAddrMessage not in shared.knownNodes[recaddrStream]:
                 if len(shared.knownNodes[recaddrStream]) < 20000 and timeSomeoneElseReceivedMessageFromThisNode > (int(time.time()) - 10800) and timeSomeoneElseReceivedMessageFromThisNode < (int(time.time()) + 10800):  # If we have more than 20000 nodes in our list already then just forget about adding more. Also, make sure that the time that someone else received a message from this node is within three hours from now.
                     with shared.knownNodesLock:
@@ -564,7 +524,7 @@ class receiveDataThread(threading.Thread):
                     shared.needToWriteKnownNodesToDisk = True
                     hostDetails = (
                         timeSomeoneElseReceivedMessageFromThisNode,
-                        recaddrStream, recaddrServices, hostStandardFormat, recaddrPort)
+                        recaddrStream, recaddrServices, fullDest)
                     shared.broadcastToSendDataQueues((
                         self.streamNumber, 'advertisepeer', hostDetails))
             else:
@@ -595,30 +555,24 @@ class receiveDataThread(threading.Thread):
             if len(shared.knownNodes[self.streamNumber]) > 0:
                 for i in range(500):
                     peer, = random.sample(shared.knownNodes[self.streamNumber], 1)
-                    if isHostInPrivateIPRange(peer.host):
-                        continue
                     addrsInMyStream[peer] = shared.knownNodes[
                         self.streamNumber][peer]
             if len(shared.knownNodes[self.streamNumber * 2]) > 0:
                 for i in range(250):
                     peer, = random.sample(shared.knownNodes[
                                           self.streamNumber * 2], 1)
-                    if isHostInPrivateIPRange(peer.host):
-                        continue
                     addrsInChildStreamLeft[peer] = shared.knownNodes[
                         self.streamNumber * 2][peer]
             if len(shared.knownNodes[(self.streamNumber * 2) + 1]) > 0:
                 for i in range(250):
                     peer, = random.sample(shared.knownNodes[
                                           (self.streamNumber * 2) + 1], 1)
-                    if isHostInPrivateIPRange(peer.host):
-                        continue
                     addrsInChildStreamRight[peer] = shared.knownNodes[
                         (self.streamNumber * 2) + 1][peer]
         numberOfAddressesInAddrMessage = 0
         payload = ''
         # print 'addrsInMyStream.items()', addrsInMyStream.items()
-        for (HOST, PORT), value in addrsInMyStream.items():
+        for DEST, value in addrsInMyStream.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -627,9 +581,8 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', self.streamNumber)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += shared.encodeHost(HOST)
-                payload += pack('>H', PORT)  # remote port
-        for (HOST, PORT), value in addrsInChildStreamLeft.items():
+                payload += DEST
+        for DEST, value in addrsInChildStreamLeft.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -638,9 +591,8 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', self.streamNumber * 2)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += shared.encodeHost(HOST)
-                payload += pack('>H', PORT)  # remote port
-        for (HOST, PORT), value in addrsInChildStreamRight.items():
+                payload += DEST
+        for DEST, value in addrsInChildStreamRight.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -649,8 +601,7 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', (self.streamNumber * 2) + 1)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += shared.encodeHost(HOST)
-                payload += pack('>H', PORT)  # remote port
+                payload += DEST
 
         payload = encodeVarint(numberOfAddressesInAddrMessage) + payload
         self.sendDataThreadQueue.put((0, 'sendRawData', shared.CreatePacket('addr', payload)))
@@ -690,13 +641,11 @@ class receiveDataThread(threading.Thread):
             time.sleep(2)
             self.sendDataThreadQueue.put((0, 'shutdown','no data'))
             return 
-        self.myExternalIP = socket.inet_ntoa(data[40:44])
-        # print 'myExternalIP', self.myExternalIP
-        self.remoteNodeIncomingPort, = unpack('>H', data[70:72])
-        # print 'remoteNodeIncomingPort', self.remoteNodeIncomingPort
+        self.myExternalDest = data[40:576]
+
         useragentLength, lengthOfUseragentVarint = decodeVarint(
-            data[80:84])
-        readPosition = 80 + lengthOfUseragentVarint
+            data[1120:1124])
+        readPosition = 1120 + lengthOfUseragentVarint
         useragent = data[readPosition:readPosition + useragentLength]
         readPosition += useragentLength
         numberOfStreamsInVersionMessage, lengthOfNumberOfStreamsInVersionMessage = decodeVarint(
@@ -713,7 +662,7 @@ class receiveDataThread(threading.Thread):
                 print 'Closed connection to', self.peer, 'because they are interested in stream', self.streamNumber, '.'
             return
         shared.connectedHostsList[
-            self.peer.host] = 1  # We use this data structure to not only keep track of what hosts we are connected to so that we don't try to connect to them again, but also to list the connections count on the Network Status tab.
+            self.peer.dest] = 1  # We use this data structure to not only keep track of what hosts we are connected to so that we don't try to connect to them again, but also to list the connections count on the Network Status tab.
         # If this was an incoming connection, then the sendDataThread
         # doesn't know the stream. We have to set it.
         if not self.initiatedConnection:
@@ -729,7 +678,7 @@ class receiveDataThread(threading.Thread):
         self.sendDataThreadQueue.put((0, 'setRemoteProtocolVersion', self.remoteProtocolVersion))
 
         with shared.knownNodesLock:
-            shared.knownNodes[self.streamNumber][shared.Peer(self.peer.host, self.remoteNodeIncomingPort)] = int(time.time())
+            shared.knownNodes[self.streamNumber][shared.Peer(self.peer.dest)] = int(time.time())
             shared.needToWriteKnownNodesToDisk = True
 
         self.sendverack()
@@ -741,7 +690,7 @@ class receiveDataThread(threading.Thread):
         with shared.printLock:
             print 'Sending version message'
         self.sendDataThreadQueue.put((0, 'sendRawData', shared.assembleVersionMessage(
-                self.peer.host, self.peer.port, self.streamNumber)))
+                self.peer.dest, self.streamNumber)))
 
 
     # Sends a verack message

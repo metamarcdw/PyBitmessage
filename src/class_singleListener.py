@@ -1,6 +1,6 @@
 import threading
 import shared
-import socket
+from i2p import socket
 from class_sendDataThread import *
 from class_receiveDataThread import *
 import helper_bootstrap
@@ -23,18 +23,12 @@ class singleListener(threading.Thread):
     def setup(self, selfInitiatedConnections):
         self.selfInitiatedConnections = selfInitiatedConnections
 
-    def _createListenSocket(self, family):
-        HOST = ''  # Symbolic name meaning all available interfaces
-        PORT = shared.config.getint('bitmessagesettings', 'port')
-        sock = socket.socket(family, socket.SOCK_STREAM)
-        if family == socket.AF_INET6:
-            # Make sure we can accept both IPv4 and IPv6 connections.
-            # This is the default on everything apart from Windows
-            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+    def _createListenSocket(self, session=shared.i2psession):
+        sock = socket.socket(session, socket.SOCK_STREAM)
         # This option apparently avoids the TIME_WAIT state so that we can
         # rebind faster
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((HOST, PORT))
+        # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # sock.bind((HOST, PORT))
         sock.listen(2)
         return sock
 
@@ -46,41 +40,26 @@ class singleListener(threading.Thread):
 
         while shared.safeConfigGetBoolean('bitmessagesettings', 'dontconnect'):
             time.sleep(1)
-        helper_bootstrap.dns()
-        # We typically don't want to accept incoming connections if the user is using a
-        # SOCKS proxy, unless they have configured otherwise. If they eventually select
-        # proxy 'none' or configure SOCKS listening then this will start listening for
-        # connections.
-        while shared.config.get('bitmessagesettings', 'socksproxytype')[0:5] == 'SOCKS' and not shared.config.getboolean('bitmessagesettings', 'sockslisten'):
-            time.sleep(5)
-
-        with shared.printLock:
-            print 'Listening for incoming connections.'
 
         # First try listening on an IPv6 socket. This should also be
         # able to accept connections on IPv4. If that's not available
         # we'll fall back to IPv4-only.
         try:
-            sock = self._createListenSocket(socket.AF_INET6)
-        except socket.error, e:
+            sock = self._createListenSocket()
+        except socket.Error, e:
             if (isinstance(e.args, tuple) and
                 e.args[0] in (errno.EAFNOSUPPORT,
                               errno.EPFNOSUPPORT,
                               errno.ENOPROTOOPT)):
-                sock = self._createListenSocket(socket.AF_INET)
+                sock = self._createListenSocket()
             else:
                 raise
 
-        # regexp to match an IPv4-mapped IPv6 address
-        mappedAddressRegexp = re.compile(r'^::ffff:([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$')
+        with shared.printLock:
+            print 'Listening for incoming connections.'
+            print 'Listening on:', sock.dest
 
         while True:
-            # We typically don't want to accept incoming connections if the user is using a
-            # SOCKS proxy, unless they have configured otherwise. If they eventually select
-            # proxy 'none' or configure SOCKS listening then this will start listening for
-            # connections.
-            while shared.config.get('bitmessagesettings', 'socksproxytype')[0:5] == 'SOCKS' and not shared.config.getboolean('bitmessagesettings', 'sockslisten'):
-                time.sleep(10)
             while len(shared.connectedHostsList) > 220:
                 with shared.printLock:
                     print 'We are connected to too many people. Not accepting further incoming connections for ten seconds.'
@@ -88,24 +67,17 @@ class singleListener(threading.Thread):
                 time.sleep(10)
 
             while True:
-                socketObject, sockaddr = sock.accept()
-                (HOST, PORT) = sockaddr[0:2]
-
-                # If the address is an IPv4-mapped IPv6 address then
-                # convert it to just the IPv4 representation
-                md = mappedAddressRegexp.match(HOST)
-                if md != None:
-                    HOST = md.group(1)
+                socketObject, sockdest = sock.accept()
 
                 # The following code will, unfortunately, block an
                 # incoming connection if someone else on the same LAN
                 # is already connected because the two computers will
                 # share the same external IP. This is here to prevent
                 # connection flooding.
-                if HOST in shared.connectedHostsList:
+                if sockdest in shared.connectedHostsList:
                     socketObject.close()
                     with shared.printLock:
-                        print 'We are already connected to', HOST + '. Ignoring connection.'
+                        print 'We are already connected to', sockdest + '. Ignoring connection.'
                 else:
                     break
 
@@ -115,15 +87,15 @@ class singleListener(threading.Thread):
 
             sd = sendDataThread(sendDataThreadQueue)
             sd.setup(
-                socketObject, HOST, PORT, -1, someObjectsOfWhichThisRemoteNodeIsAlreadyAware)
+                socketObject, sockdest, -1, someObjectsOfWhichThisRemoteNodeIsAlreadyAware)
             sd.start()
 
             rd = receiveDataThread()
             rd.daemon = True  # close the main program even if there are threads left
             rd.setup(
-                socketObject, HOST, PORT, -1, someObjectsOfWhichThisRemoteNodeIsAlreadyAware, self.selfInitiatedConnections, sendDataThreadQueue)
+                socketObject, sockdest, -1, someObjectsOfWhichThisRemoteNodeIsAlreadyAware, self.selfInitiatedConnections, sendDataThreadQueue)
             rd.start()
 
             with shared.printLock:
-                print self, 'connected to', HOST, 'during INCOMING request.'
+                print self, 'connected to', sockdest, 'during INCOMING request.'
 

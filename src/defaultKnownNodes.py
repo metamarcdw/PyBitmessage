@@ -1,5 +1,5 @@
 import pickle
-import socket
+from i2p import socket
 from struct import *
 import time
 import random
@@ -10,17 +10,7 @@ import shared
 def createDefaultKnownNodes(appdata):
     ############## Stream 1 ################
     stream1 = {}
-
-    #stream1[shared.Peer('2604:2000:1380:9f:82e:148b:2746:d0c7', 8080)] = int(time.time())
-    stream1[shared.Peer('5.45.99.75', 8444)] = int(time.time())
-    stream1[shared.Peer('75.167.159.54', 8444)] = int(time.time())
-    stream1[shared.Peer('95.165.168.168', 8444)] = int(time.time())
-    stream1[shared.Peer('85.180.139.241', 8444)] = int(time.time())
-    stream1[shared.Peer('158.222.211.81', 8080)] = int(time.time())
-    stream1[shared.Peer('178.62.12.187', 8448)] = int(time.time())
-    stream1[shared.Peer('24.188.198.204', 8111)] = int(time.time())
-    stream1[shared.Peer('109.147.204.113', 1195)] = int(time.time())
-    stream1[shared.Peer('178.11.46.221', 8444)] = int(time.time())
+    #stream1[shared.Peer('VXVZRtml-XDgkwFcehckXBQ1qOx8whwjYlPZnKyIp3L5OFhwF6moUjkAoN~4J5TmdBLP5jxoOEwe5pC6TcgkKAvEXLqGvb607LPr9XhhWdgfHFyfcEG1zGhMziisOSHwmnUAjlvd5FT9H7ouv2on5JvLAHRiqe-vO0Ifz~dnkQyhd-IouWArdTlXQqhm7ArMS1-vHQKaslktY9BrFS8ZxKojbAMxcrBrt-9IND1f9-KpRBwtKp0Hup6jzIk3cNGbP4eadZ3F-Zic6oy-ktsH0iz5FBKmpMdc36SQDG8rReMjngKZntl4OhxjAZ7eYLllA6T3X5wdICkoqNJEobByGx9TEYXq6bVlyp7aoxGuB8~piqJWoCqbgfcIDUznP050YoCKp3Uk6u9DmROP4pckzg910FdKSF3TRlebKRRzB7KHWXV~CY3xZEp8CKblBljJEw3FNv0IZ5Guq0tNi9bjs6uXtY1IPviEN9cVfmT3EZ5WK8b~3JdvZrDGKoWAJkRAAAAA')] = int(time.time())
     
     ############# Stream 2 #################
     stream2 = {}
@@ -49,19 +39,14 @@ def readDefaultKnownNodes(appdata):
     knownNodes = pickle.load(pickleFile)
     pickleFile.close()
     for stream, storedValue in knownNodes.items():
-        for host,value in storedValue.items():
-            try:
-                # Old knownNodes format.
-                port, storedtime = value
-            except:
-                # New knownNodes format.
-                host, port = host
-                storedtime = value
-            print host, '\t', port, '\t', unicode(strftime('%a, %d %b %Y  %I:%M %p',localtime(storedtime)),'utf-8')
+        for dest,value in storedValue.items():
+            # New knownNodes format.
+            storedtime = value
+            print dest, '\t', unicode(strftime('%a, %d %b %Y  %I:%M %p',localtime(storedtime)),'utf-8')
 
 if __name__ == "__main__":
 
-    APPNAME = "PyBitmessage"
+    APPNAME = "config/PyBitmessage"
     from os import path, environ
     if sys.platform == 'darwin':
         from AppKit import NSSearchPathForDirectoriesInDomains  # @UnresolvedImport
