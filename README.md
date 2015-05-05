@@ -2,6 +2,7 @@ PyBitmessage-I2P
 ============
 
 This is a fork of PyBitmessage that runs natively over I2P (ONLY)
+
 Requires a running I2P router with SAM Bridge activated.
 
 Bitmessage is a P2P communications protocol used to send encrypted messages to
