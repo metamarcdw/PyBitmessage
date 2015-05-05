@@ -23,7 +23,9 @@ def getBootstrapListFromEepsite():
         if line == '': break                  # Content begins
     
     str = f.read()                            # Read file object
+    f.close()                                 # Close file, connection
     S.close()
+
     import json
     return json.loads(str)                    # Load list from JSON and return
 
