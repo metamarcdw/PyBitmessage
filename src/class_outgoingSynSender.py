@@ -72,27 +72,8 @@ class outgoingSynSender(threading.Thread):
             shared.alreadyAttemptedConnectionsList[peer] = 0
             shared.alreadyAttemptedConnectionsListLock.release()
 
-            try:
-                sock = socks.socksocket(shared.i2psession, socket.SOCK_STREAM)
-            except:
-                """
-                The line can fail on Windows systems which aren't
-                64-bit compatiable:
-                      File "C:\Python27\lib\socket.py", line 187, in __init__
-                        _sock = _realsocket(family, type, proto)
-                      error: [Errno 10047] An address incompatible with the requested protocol was used
-                      
-                So let us remove the offending address from our knownNodes file.
-                """
-                shared.knownNodesLock.acquire()
-                try:
-                    del shared.knownNodes[self.streamNumber][peer]
-                except:
-                    pass
-                shared.knownNodesLock.release()
-                with shared.printLock:
-                    print 'deleting ', peer, 'from shared.knownNodes because it caused a socks.socksocket exception. We must not be 64-bit compatible.'
-                continue
+            sock = socks.socksocket(shared.i2psession, socket.SOCK_STREAM)
+
             # This option apparently avoids the TIME_WAIT state so that we
             # can rebind faster
             # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

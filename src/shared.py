@@ -134,13 +134,6 @@ def isInSqlInventory(hash):
     queryreturn = sqlQuery('''select hash from inventory where hash=?''', hash)
     return queryreturn != []
 
-# def encodeHost(host):
-#     if host.find(':') == -1:
-#         return '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF' + \
-#             socket.inet_aton(host)
-#     else:
-#         return socket.inet_pton(socket.AF_INET6, host)
-
 def assembleVersionMessage(remoteDest, myStreamNumber):
     payload = ''
     payload += pack('>L', 3)  # protocol version.

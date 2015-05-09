@@ -8,11 +8,14 @@ from time import strftime, localtime
 import shared
 
 def getBootstrapListFromEepsite():
-    print 'Getting some defaultKnownNodes from eepsite'
     try:
         dest = shared.config.get('bitmessagesettings', 'bootstrapeepsite')
-    except: return []
+    except: pass
     
+    if not dest or dest == '':
+        return []
+    print 'Getting some defaultKnownNodes from eepsite', dest    
+
     S = socket.socket('', socket.SOCK_STREAM)  
     S.connect(dest)
     S.send('GET /bootstrap.json HTTP/1.0\r\n\r\n')          # Send request
@@ -36,7 +39,7 @@ def createDefaultKnownNodes(appdata):
     
     eepsite_list = getBootstrapListFromEepsite()
     for dest in eepsite_list:
-        stream1[shared.Peer(dest)] = int(time.time())
+        stream1[shared.Peer( str(dest) )] = int(time.time())
         
     ############# Stream 2 #################
     stream2 = {}
