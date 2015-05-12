@@ -14,11 +14,18 @@ def getBootstrapListFromEepsite():
     
     if not dest or dest == '':
         return []
-    print 'Getting some defaultKnownNodes from eepsite', dest    
 
-    S = socket.socket('', socket.SOCK_STREAM)  
-    S.connect(dest)
-    S.send('GET /bootstrap.json HTTP/1.0\r\n\r\n')          # Send request
+    while True:
+        print 'Getting some defaultKnownNodes from eepsite', dest    
+        try:
+            S = socket.socket('', socket.SOCK_STREAM)  
+            S.connect(dest)
+            S.send('GET /bootstrap.json HTTP/1.0\r\n\r\n')          # Send request
+            break
+        except socket.NetworkError as ne:
+            print "I2P Network Error:", ne
+            continue
+        
     f = S.makefile()                          # File object
     
     while True:                               # Read header

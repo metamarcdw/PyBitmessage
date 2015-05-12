@@ -493,23 +493,23 @@ class receiveDataThread(threading.Thread):
 
         if numberOfAddressesIncluded > 1000 or numberOfAddressesIncluded == 0:
             return
-        if len(data) != lengthOfNumberOfAddresses + (38 * numberOfAddressesIncluded):
+        if len(data) != lengthOfNumberOfAddresses + (536 * numberOfAddressesIncluded):
             print 'addr message does not contain the correct amount of data. Ignoring.'
             return
 
         for i in range(0, numberOfAddressesIncluded):
-            fullDest = data[20 + lengthOfNumberOfAddresses + (38 * i):536 + lengthOfNumberOfAddresses + (38 * i)]
+            fullDest = data[20 + lengthOfNumberOfAddresses + (536 * i):536 + lengthOfNumberOfAddresses + (536 * i)]
             recaddrStream, = unpack('>I', data[8 + lengthOfNumberOfAddresses + (
-                38 * i):12 + lengthOfNumberOfAddresses + (38 * i)])
+                536 * i):12 + lengthOfNumberOfAddresses + (536 * i)])
             if recaddrStream == 0:
                 continue
             if recaddrStream != self.streamNumber and recaddrStream != (self.streamNumber * 2) and recaddrStream != ((self.streamNumber * 2) + 1):  # if the embedded stream number is not in my stream or either of my child streams then ignore it. Someone might be trying funny business.
                 continue
             recaddrServices, = unpack('>Q', data[12 + lengthOfNumberOfAddresses + (
-                38 * i):20 + lengthOfNumberOfAddresses + (38 * i)])
+                536 * i):20 + lengthOfNumberOfAddresses + (536 * i)])
 
             timeSomeoneElseReceivedMessageFromThisNode, = unpack('>Q', data[lengthOfNumberOfAddresses + (
-                38 * i):8 + lengthOfNumberOfAddresses + (38 * i)])  # This is the 'time' value in the received addr message. 64-bit.
+                536 * i):8 + lengthOfNumberOfAddresses + (536 * i)])  # This is the 'time' value in the received addr message. 64-bit.
             if recaddrStream not in shared.knownNodes:  # knownNodes is a dictionary of dictionaries with one outer dictionary for each stream. If the outer stream dictionary doesn't exist yet then we must make it.
                 with shared.knownNodesLock:
                     shared.knownNodes[recaddrStream] = {}
@@ -572,7 +572,7 @@ class receiveDataThread(threading.Thread):
         numberOfAddressesInAddrMessage = 0
         payload = ''
         # print 'addrsInMyStream.items()', addrsInMyStream.items()
-        for DEST, value in addrsInMyStream.items():
+        for PEER, value in addrsInMyStream.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -581,8 +581,8 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', self.streamNumber)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += DEST
-        for DEST, value in addrsInChildStreamLeft.items():
+                payload += PEER.dest
+        for PEER, value in addrsInChildStreamLeft.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -591,8 +591,8 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', self.streamNumber * 2)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += DEST
-        for DEST, value in addrsInChildStreamRight.items():
+                payload += PEER.dest
+        for PEER, value in addrsInChildStreamRight.items():
             timeLastReceivedMessageFromThisNode = value
             if timeLastReceivedMessageFromThisNode > (int(time.time()) - shared.maximumAgeOfNodesThatIAdvertiseToOthers):  # If it is younger than 3 hours old..
                 numberOfAddressesInAddrMessage += 1
@@ -601,7 +601,7 @@ class receiveDataThread(threading.Thread):
                 payload += pack('>I', (self.streamNumber * 2) + 1)
                 payload += pack(
                     '>q', 1)  # service bit flags offered by this node
-                payload += DEST
+                payload += PEER.dest
 
         payload = encodeVarint(numberOfAddressesInAddrMessage) + payload
         self.sendDataThreadQueue.put((0, 'sendRawData', shared.CreatePacket('addr', payload)))
@@ -641,11 +641,11 @@ class receiveDataThread(threading.Thread):
             time.sleep(2)
             self.sendDataThreadQueue.put((0, 'shutdown','no data'))
             return 
-        self.myExternalDest = data[40:576]
+        self.myExternalDest = data[28:544]
 
         useragentLength, lengthOfUseragentVarint = decodeVarint(
-            data[1120:1124])
-        readPosition = 1120 + lengthOfUseragentVarint
+            data[1076:1080])
+        readPosition = 1076 + lengthOfUseragentVarint
         useragent = data[readPosition:readPosition + useragentLength]
         readPosition += useragentLength
         numberOfStreamsInVersionMessage, lengthOfNumberOfStreamsInVersionMessage = decodeVarint(
@@ -667,7 +667,7 @@ class receiveDataThread(threading.Thread):
         # doesn't know the stream. We have to set it.
         if not self.initiatedConnection:
             self.sendDataThreadQueue.put((0, 'setStreamNumber', self.streamNumber))
-        if data[72:80] == shared.eightBytesOfRandomDataUsedToDetectConnectionsToSelf:
+        if data[1068:1076] == shared.eightBytesOfRandomDataUsedToDetectConnectionsToSelf:
             self.sendDataThreadQueue.put((0, 'shutdown','no data'))
             with shared.printLock:
                 print 'Closing connection to myself: ', self.peer
