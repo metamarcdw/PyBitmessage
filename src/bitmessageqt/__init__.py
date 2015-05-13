@@ -2355,37 +2355,6 @@ more work your computer must do to send the message. A Time-To-Live of four or f
                 shared.config.set('bitmessagesettings', 'userlocale', languages[lang_ind])
                 change_translation(languages[lang_ind])
             
-            if int(shared.config.get('bitmessagesettings', 'port')) != int(self.settingsDialogInstance.ui.lineEditTCPPort.text()):
-                if not shared.safeConfigGetBoolean('bitmessagesettings', 'dontconnect'):
-                    QMessageBox.about(self, _translate("MainWindow", "Restart"), _translate(
-                        "MainWindow", "You must restart Bitmessage for the port number change to take effect."))
-                shared.config.set('bitmessagesettings', 'port', str(
-                    self.settingsDialogInstance.ui.lineEditTCPPort.text()))
-            #print 'self.settingsDialogInstance.ui.comboBoxProxyType.currentText()', self.settingsDialogInstance.ui.comboBoxProxyType.currentText()
-            #print 'self.settingsDialogInstance.ui.comboBoxProxyType.currentText())[0:5]', self.settingsDialogInstance.ui.comboBoxProxyType.currentText()[0:5]
-            if shared.config.get('bitmessagesettings', 'socksproxytype') == 'none' and self.settingsDialogInstance.ui.comboBoxProxyType.currentText()[0:5] == 'SOCKS':
-                if shared.statusIconColor != 'red':
-                    QMessageBox.about(self, _translate("MainWindow", "Restart"), _translate(
-                        "MainWindow", "Bitmessage will use your proxy from now on but you may want to manually restart Bitmessage now to close existing connections (if any)."))
-            if shared.config.get('bitmessagesettings', 'socksproxytype')[0:5] == 'SOCKS' and self.settingsDialogInstance.ui.comboBoxProxyType.currentText()[0:5] != 'SOCKS':
-                self.statusBar().showMessage('')
-            if self.settingsDialogInstance.ui.comboBoxProxyType.currentText()[0:5] == 'SOCKS':
-                shared.config.set('bitmessagesettings', 'socksproxytype', str(
-                    self.settingsDialogInstance.ui.comboBoxProxyType.currentText()))
-            else:
-                shared.config.set('bitmessagesettings', 'socksproxytype', 'none')
-            shared.config.set('bitmessagesettings', 'socksauthentication', str(
-                self.settingsDialogInstance.ui.checkBoxAuthentication.isChecked()))
-            shared.config.set('bitmessagesettings', 'sockshostname', str(
-                self.settingsDialogInstance.ui.lineEditSocksHostname.text()))
-            shared.config.set('bitmessagesettings', 'socksport', str(
-                self.settingsDialogInstance.ui.lineEditSocksPort.text()))
-            shared.config.set('bitmessagesettings', 'socksusername', str(
-                self.settingsDialogInstance.ui.lineEditSocksUsername.text()))
-            shared.config.set('bitmessagesettings', 'sockspassword', str(
-                self.settingsDialogInstance.ui.lineEditSocksPassword.text()))
-            shared.config.set('bitmessagesettings', 'sockslisten', str(
-                self.settingsDialogInstance.ui.checkBoxSocksListen.isChecked()))
             try:
                 # Rounding to integers just for aesthetics
                 shared.config.set('bitmessagesettings', 'maxdownloadrate', str(
@@ -3492,41 +3461,11 @@ class settingsDialog(QtGui.QDialog):
             self.ui.checkBoxStartOnLogon.setText(_translate(
                 "MainWindow", "Start-on-login not yet supported on your OS."))
         # On the Network settings tab:
-        self.ui.lineEditTCPPort.setText(str(
-            shared.config.get('bitmessagesettings', 'port')))
-        self.ui.checkBoxAuthentication.setChecked(shared.config.getboolean(
-            'bitmessagesettings', 'socksauthentication'))
-        self.ui.checkBoxSocksListen.setChecked(shared.config.getboolean(
-            'bitmessagesettings', 'sockslisten'))
-        if str(shared.config.get('bitmessagesettings', 'socksproxytype')) == 'none':
-            self.ui.comboBoxProxyType.setCurrentIndex(0)
-            self.ui.lineEditSocksHostname.setEnabled(False)
-            self.ui.lineEditSocksPort.setEnabled(False)
-            self.ui.lineEditSocksUsername.setEnabled(False)
-            self.ui.lineEditSocksPassword.setEnabled(False)
-            self.ui.checkBoxAuthentication.setEnabled(False)
-            self.ui.checkBoxSocksListen.setEnabled(False)
-        elif str(shared.config.get('bitmessagesettings', 'socksproxytype')) == 'SOCKS4a':
-            self.ui.comboBoxProxyType.setCurrentIndex(1)
-            self.ui.lineEditTCPPort.setEnabled(False)
-        elif str(shared.config.get('bitmessagesettings', 'socksproxytype')) == 'SOCKS5':
-            self.ui.comboBoxProxyType.setCurrentIndex(2)
-            self.ui.lineEditTCPPort.setEnabled(False)
-
-        self.ui.lineEditSocksHostname.setText(str(
-            shared.config.get('bitmessagesettings', 'sockshostname')))
-        self.ui.lineEditSocksPort.setText(str(
-            shared.config.get('bitmessagesettings', 'socksport')))
-        self.ui.lineEditSocksUsername.setText(str(
-            shared.config.get('bitmessagesettings', 'socksusername')))
-        self.ui.lineEditSocksPassword.setText(str(
-            shared.config.get('bitmessagesettings', 'sockspassword')))
-        QtCore.QObject.connect(self.ui.comboBoxProxyType, QtCore.SIGNAL(
-            "currentIndexChanged(int)"), self.comboBoxProxyTypeChanged)
         self.ui.lineEditMaxDownloadRate.setText(str(
             shared.config.get('bitmessagesettings', 'maxdownloadrate')))
         self.ui.lineEditMaxUploadRate.setText(str(
             shared.config.get('bitmessagesettings', 'maxuploadrate')))
+        self.ui.plainTextEdit.setPlainText(shared.myDestination)
 
         # Demanded difficulty tab
         self.ui.lineEditTotalDifficulty.setText(str((float(shared.config.getint(

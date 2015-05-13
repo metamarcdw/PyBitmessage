@@ -54,7 +54,8 @@ class singleListener(threading.Thread):
                 sock = self._createListenSocket()
             else:
                 raise
-
+                
+        shared.myDestination = sock.dest
         with shared.printLock:
             print 'Listening for incoming connections.'
             print 'Listening on:', sock.dest

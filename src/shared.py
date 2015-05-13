@@ -34,6 +34,7 @@ import shared
 from helper_sql import *
 
 i2psession = 'i2pbm'
+myDestination = ''
 config = ConfigParser.SafeConfigParser()
 myECCryptorObjects = {}
 MyECSubscriptionCryptorObjects = {}
