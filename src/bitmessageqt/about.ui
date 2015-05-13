@@ -32,9 +32,9 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>126</y>
-     <width>111</width>
+     <x>50</x>
+     <y>110</y>
+     <width>131</width>
      <height>20</height>
     </rect>
    </property>
@@ -45,7 +45,7 @@
     </font>
    </property>
    <property name="text">
-    <string>PyBitmessage</string>
+    <string>PyBitmessage-I2P</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -55,7 +55,7 @@
    <property name="geometry">
     <rect>
      <x>190</x>
-     <y>126</y>
+     <y>110</y>
      <width>161</width>
      <height>20</height>
     </rect>
@@ -68,13 +68,13 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>150</y>
+     <y>134</y>
      <width>341</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2012-2014 Jonathan Warren&lt;br/&gt;Copyright © 2013-2014 The Bitmessage Developers&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2012-2014 Jonathan Warren&lt;br/&gt;Copyright © 2013-2014 The Bitmessage Developers&lt;br/&gt;Copyright © 2015 Marc Wood&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
