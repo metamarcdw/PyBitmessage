@@ -143,14 +143,14 @@ def encodeAddress(version,stream,ripe):
     checksum = sha.digest()[0:4]
 
     asInt = int(storedBinaryData.encode('hex') + checksum.encode('hex'),16)
-    return 'BM-'+ encodeBase58(asInt)
+    return 'BM+'+ encodeBase58(asInt)
 
 def decodeAddress(address):
     #returns (status, address version number, stream number, data (almost certainly a ripe hash))
 
     address = str(address).strip()
 
-    if address[:3] == 'BM-':
+    if address[:3] == 'BM+':
         integer = decodeBase58(address[3:])
     else:
         integer = decodeBase58(address)
