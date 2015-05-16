@@ -2,9 +2,38 @@ PyBitmessage-I2P
 ============
 
 This is a fork of PyBitmessage that runs natively over I2P (ONLY)
+It requires a running I2P router with SAM Bridge activated.
 
-Requires a running I2P router with SAM Bridge activated.
+You must also have the i2p SAM python module installed:
+```
+git clone https://github.com/i2p/i2p.i2p.git
+cd i2p.i2p/apps/sam/python
+python setup.py install
+```
 
+Just to be clear, so far it has only been tested from source.
+
+Differences from vanilla Bitmessage
+----------
+PyBitmessage-I2P has several important differences from vanilla Bitmessage.
+Always remember _THIS IS A SEPARATE NETWORK_! PyBitmessage-I2P forms a completely
+new and separate Bitmessage network inside of I2P. Since this is a new network,
+the client must bootstrap by accessing an eepsite and reading a list of known nodes.
+This bootstrapping process can cause delays if your I2P router is not well
+integrated with the I2P network. Another important difference to take note of
+is that the format for Bitmessage addresses has been changed slightly to signify
+that you are seeing a BM-I2P address rather than a vanilla address.
+PyBitmessage-I2P addresses start with "BM+" rather than "BM-".
+
+If you would like to contribute to the network by running a node 24/7 for newcomers
+to bootstrap from, navigate to your Network Settings dialog and send a copy of
+your I2P destination string to:
+
+BM+2cToiiYrW92SSZ3616VTgQYmSmg5bVDi8w (PyBItmessage-I2P)
+
+BM-2cToiiYrW92SSZ3616VTgQYmSmg5bVDi8w (Vanilla Bitmessage)
+
+----------
 Bitmessage is a P2P communications protocol used to send encrypted messages to
 another person or to many subscribers. It is decentralized and trustless,
 meaning that you need-not inherently trust any entities like root certificate
