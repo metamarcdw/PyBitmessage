@@ -4,11 +4,11 @@ PyBitmessage-I2P
 This is a fork of PyBitmessage that runs natively over I2P (ONLY)
 It requires a running I2P router with SAM Bridge activated.
 You must also have the i2p SAM python module installed:
-[code]
+```
 git clone https://github.com/i2p/i2p.i2p.git
 cd i2p.i2p/apps/sam/python
 python setup.py install
-[/code]
+```
 
 Just to be clear, so far it has only been tested from source.
 
