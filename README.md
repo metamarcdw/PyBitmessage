@@ -13,6 +13,10 @@ python setup.py install
 
 Just to be clear, so far it has only been tested from source.
 
+**UPDATE: A Windows binary has been created using PyInstaller.
+It has been tested and is working under Windows 8.1.
+It is available from the GitHub repository as PyBitmessage-I2P.exe**
+
 Differences from vanilla Bitmessage
 ----------
 PyBitmessage-I2P has several important differences from vanilla Bitmessage.
