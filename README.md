@@ -17,7 +17,13 @@ is that the format for Bitmessage addresses has been changed slightly to signify
 that you are seeing a BM-I2P address rather than a vanilla address.
 PyBitmessage-I2P addresses start with "BM+" rather than "BM-".
 
+If you would like to comtribute to the network by running a node 24/7 for newcomers
+to bootstrap from, navigate to your Network Settings dialog and send a copy of
+your I2P destination string to:
+BM+2cToiiYrW92SSZ3616VTgQYmSmg5bVDi8w
 
+
+----------
 Bitmessage is a P2P communications protocol used to send encrypted messages to
 another person or to many subscribers. It is decentralized and trustless,
 meaning that you need-not inherently trust any entities like root certificate
