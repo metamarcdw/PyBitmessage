@@ -44,8 +44,6 @@ class sqlThread(threading.Thread):
             self.cur.execute(
                 '''CREATE TABLE inventory (hash blob, objecttype int, streamnumber int, payload blob, expirestime integer, tag blob, UNIQUE(hash) ON CONFLICT REPLACE)''' )
             self.cur.execute(
-                '''INSERT INTO subscriptions VALUES('Bitmessage new releases/announcements','BM-GtovgYdgs7qXPkoYaRgrLFuFKz1SFpsw',1)''')
-            self.cur.execute(
                 '''CREATE TABLE settings (key blob, value blob, UNIQUE(key) ON CONFLICT REPLACE)''' )
             self.cur.execute( '''INSERT INTO settings VALUES('version','10')''')
             self.cur.execute( '''INSERT INTO settings VALUES('lastvacuumtime',?)''', (
@@ -150,11 +148,6 @@ class sqlThread(threading.Thread):
             logger.debug('Deleting all pubkeys from inventory. They will be redownloaded and then saved with the correct times.')
             self.cur.execute(
                 '''delete from inventory where objecttype = 'pubkey';''')
-            logger.debug('replacing Bitmessage announcements mailing list with a new one.')
-            self.cur.execute(
-                '''delete from subscriptions where address='BM-BbkPSZbzPwpVcYZpU4yHwf9ZPEapN5Zx' ''')
-            self.cur.execute(
-                '''INSERT INTO subscriptions VALUES('Bitmessage new releases/announcements','BM-GtovgYdgs7qXPkoYaRgrLFuFKz1SFpsw',1)''')
             logger.debug('Commiting.')
             self.conn.commit()
             logger.debug('Vacuuming message.dat. You might notice that the file size gets much smaller.')

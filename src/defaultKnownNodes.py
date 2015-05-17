@@ -10,7 +10,8 @@ import shared
 def getBootstrapListFromEepsite():
     try:
         dest = shared.config.get('bitmessagesettings', 'bootstrapeepsite')
-    except: pass
+    except:
+        return []
     
     if not dest or dest == '':
         return []

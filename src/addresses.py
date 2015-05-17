@@ -239,8 +239,8 @@ def decodeAddress(address):
 
 def addBMIfNotPresent(address):
     address = str(address).strip()
-    if address[:3] != 'BM-':
-        return 'BM-'+address
+    if address[:3] != 'BM+':
+        return 'BM+'+address
     else:
         return address
 
