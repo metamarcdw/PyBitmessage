@@ -11,6 +11,12 @@ cd i2p.i2p/apps/sam/python
 python setup.py install
 ```
 
+You must also insert a new config entry into your keys.dat file
+to enable bootstrapping from the eepsite:
+```
+bootstrapeepsite = pybitmessage-i2p.i2p
+```
+
 Just to be clear, so far it has only been tested from source.
 
 **UPDATE: A Windows binary has been created using PyInstaller.
