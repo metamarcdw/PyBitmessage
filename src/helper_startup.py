@@ -87,7 +87,7 @@ def loadConfig():
         shared.config.set('bitmessagesettings', 'sockspassword', '')
         shared.config.set('bitmessagesettings', 'keysencrypted', 'false')
         shared.config.set(
-            'bitmessagesettings', 'messagesencrypted', 'false')
+            'bitmessagesettings', 'messagesencrypted', 'true')
         shared.config.set('bitmessagesettings', 'defaultnoncetrialsperbyte', str(
             shared.networkDefaultProofOfWorkNonceTrialsPerByte))
         shared.config.set('bitmessagesettings', 'defaultpayloadlengthextrabytes', str(
