@@ -4,21 +4,6 @@ PyBitmessage-I2P
 This is a fork of PyBitmessage that runs natively over I2P (ONLY)
 It requires a running I2P router with SAM Bridge activated.
 
-You must also have the i2p SAM python module installed:
-```
-git clone https://github.com/i2p/i2p.i2p.git
-cd i2p.i2p/apps/sam/python
-python setup.py install
-```
-
-You must also insert a new config entry into your keys.dat file
-to enable bootstrapping from the eepsite:
-```
-bootstrapeepsite = pybitmessage-i2p.i2p
-```
-
-Just to be clear, so far it has only been tested from source.
-
 **UPDATE: A Windows binary has been created using PyInstaller.
 It has been tested and is working under Windows 8.1.
 It is available from the GitHub repository as PyBitmessage-I2P.exe**
