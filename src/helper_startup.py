@@ -87,7 +87,7 @@ def loadConfig():
         shared.config.set('bitmessagesettings', 'sockspassword', '')
         shared.config.set('bitmessagesettings', 'keysencrypted', 'false')
         shared.config.set(
-            'bitmessagesettings', 'messagesencrypted', 'false')
+            'bitmessagesettings', 'messagesencrypted', 'true')
         shared.config.set('bitmessagesettings', 'defaultnoncetrialsperbyte', str(
             shared.networkDefaultProofOfWorkNonceTrialsPerByte))
         shared.config.set('bitmessagesettings', 'defaultpayloadlengthextrabytes', str(
@@ -105,6 +105,9 @@ def loadConfig():
         shared.config.set('bitmessagesettings', 'maxdownloadrate', '0')
         shared.config.set('bitmessagesettings', 'maxuploadrate', '0')
         shared.config.set('bitmessagesettings', 'ttl', '367200')
+
+        #boostrap via psi.i2p
+        shared.config.set('bitmessagesettings', 'bootstrapeepsite', 'avviiexdngd32ccoy4kuckvc3mkf53ycvzbz6vz75vzhv4tbpk5a.b32.i2p')
         
          #start:UI setting to stop trying to send messages after X days/months
         shared.config.set(
