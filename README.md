@@ -6,7 +6,9 @@ It requires a running I2P router with SAM Bridge activated.
 
 **UPDATE: A Windows binary has been created using PyInstaller.
 It has been tested and is working under Windows 8.1.
-It is available from the GitHub repository as PyBitmessage-I2P.exe**
+It is available from the GitHub repository at:**
+
+https://github.com/metamarcdw/PyBitmessage-I2P/releases/download/v0.1.0/PyBitmessage-I2P.exe
 
 Differences from vanilla Bitmessage
 ----------
