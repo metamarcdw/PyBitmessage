@@ -107,7 +107,7 @@ def loadConfig():
         shared.config.set('bitmessagesettings', 'ttl', '367200')
 
         #boostrap via psi.i2p
-        shared.config.set('bitmessagesettings', 'bootstrapeepsite', 'avviiexdngd32ccoy4kuckvc3mkf53ycvzbz6vz75vzhv4tbpk5a.b32.i2p')
+        shared.config.set('bitmessagesettings', 'bootstrapeepsite', '4kecr3jdeiuihtuib7dgtsq4sd2jicxyiaclrn26xhvhqw7ocrma.b32.i2p')
         
          #start:UI setting to stop trying to send messages after X days/months
         shared.config.set(
