@@ -77,7 +77,7 @@ class outgoingSynSender(threading.Thread):
             # This option apparently avoids the TIME_WAIT state so that we
             # can rebind faster
             # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.settimeout(180)
+            sock.settimeout(600)
             if shared.config.get('bitmessagesettings', 'socksproxytype') == 'none' and shared.verbose >= 2:
                 with shared.printLock:
                     print 'Trying an outgoing connection to', peer
