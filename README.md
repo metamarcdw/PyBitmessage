@@ -8,7 +8,7 @@ It requires a running I2P router with SAM Bridge activated.
 It has been tested and is working under Windows 8.1.
 It is available from the GitHub repository at:**
 
-https://github.com/metamarcdw/PyBitmessage-I2P/releases/download/v0.1.0/PyBitmessage-I2P.exe
+https://github.com/metamarcdw/PyBitmessage-I2P/releases/download/v0.1.1/PyBitmessage-I2P.exe
 
 Differences from vanilla Bitmessage
 ----------
