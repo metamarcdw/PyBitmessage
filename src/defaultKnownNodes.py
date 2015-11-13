@@ -45,9 +45,9 @@ def createDefaultKnownNodes(appdata):
     stream1 = {}
     #stream1[shared.Peer('VXVZRtml-XDgkwFcehckXBQ1qOx8whwjYlPZnKyIp3L5OFhwF6moUjkAoN~4J5TmdBLP5jxoOEwe5pC6TcgkKAvEXLqGvb607LPr9XhhWdgfHFyfcEG1zGhMziisOSHwmnUAjlvd5FT9H7ouv2on5JvLAHRiqe-vO0Ifz~dnkQyhd-IouWArdTlXQqhm7ArMS1-vHQKaslktY9BrFS8ZxKojbAMxcrBrt-9IND1f9-KpRBwtKp0Hup6jzIk3cNGbP4eadZ3F-Zic6oy-ktsH0iz5FBKmpMdc36SQDG8rReMjngKZntl4OhxjAZ7eYLllA6T3X5wdICkoqNJEobByGx9TEYXq6bVlyp7aoxGuB8~piqJWoCqbgfcIDUznP050YoCKp3Uk6u9DmROP4pckzg910FdKSF3TRlebKRRzB7KHWXV~CY3xZEp8CKblBljJEw3FNv0IZ5Guq0tNi9bjs6uXtY1IPviEN9cVfmT3EZ5WK8b~3JdvZrDGKoWAJkRAAAAA')] = int(time.time())
     
-    eepsite_list = getBootstrapListFromEepsite()
-    for dest in eepsite_list:
-        stream1[shared.Peer( str(dest) )] = int(time.time())
+    # eepsite_list = getBootstrapListFromEepsite()
+    # for dest in eepsite_list:
+    #     stream1[shared.Peer( str(dest) )] = int(time.time())
         
     ############# Stream 2 #################
     stream2 = {}

@@ -54,7 +54,16 @@ class singleListener(threading.Thread):
                 sock = self._createListenSocket()
             else:
                 raise
-                
+        
+        print "Scrape/Announce on Seedless underway."
+        import seedless_util
+        seedless_util.service = "pybitmsg-i2p"
+        peersList = seedless_util.scrapePeers(sock.dest)
+        print "%d peers scraped from Seedless." % len(peersList)
+        for dest in peersList:
+            peer = shared.Peer( str(dest) )
+            shared.knownNodes[1][peer] = int( time.time() )
+        
         shared.myDestination = sock.dest
         with shared.printLock:
             print 'Listening for incoming connections.'
