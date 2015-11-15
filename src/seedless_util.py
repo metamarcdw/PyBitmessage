@@ -15,6 +15,7 @@ def result_to_list(result, index):
 service = ""
 
 def scrapePeers(dest):
+    # LOCATE
     tryPlugin = True
     while True:     # Try plugin first, then keep trying random servers
         cmd = "locate"
@@ -27,7 +28,8 @@ def scrapePeers(dest):
                 randomServer = choice(seedless.knownSeedlessServers)
                 res = seedless.call_seedless_server(randomServer, cmd, query)
         except ( HTTPError, timeout ) as e:
-            # print e
+            if e.code != 404:
+                print "Seedless:locate", e
             continue
             
         currentServerList = result_to_list(res, 0)
@@ -40,23 +42,34 @@ def scrapePeers(dest):
         maxServers = 3
     elif maxServers <= 0:
         raise Exception("No %s compatible seedless servers were found." % service)
-        
+    
+    # ANNOUNCE
+    for server in currentServerList:
+        while True:
+            try:
+                ann_res = seedless.call_seedless_server( \
+                        server, "announce", "%s %s" % (service, dest) )
+            except ( HTTPError, timeout ) as e:
+                print "Seedless:announce", e
+                continue
+            if ann_res:
+                break
+    
+    # SCRAPE
     peerDestinations = set()
     serversScraped = 0
     while True:
         currentServer = choice(currentServerList)
-        currentServerList.remove(currentServer)
         try:
-            ann_res = seedless.call_seedless_server( \
-                        currentServer, "announce", "%s %s" % (service, dest) )
             res = seedless.call_seedless_server( \
                         currentServer, "locate", "%s  " % service)
         except ( HTTPError, timeout ) as e:
-            print e
+            print "Seedless:scrape", e
             continue
         
         peers = result_to_list(res, 2)
-        if peers:
+        if len(peers) > 0:
+            currentServerList.remove(currentServer)
             peerDestinations.update(peers)
             serversScraped += 1
         
