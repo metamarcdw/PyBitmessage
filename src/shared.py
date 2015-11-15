@@ -121,6 +121,22 @@ trustedPeer = None
 #New code should use CreatePacket instead of Header.pack
 Header = Struct('!L12sL4s')
 
+#Scrape peers from a seedless server and announce ourselves
+import seedless_util
+def do_scrapePeers():
+    print "Scrape/Announce on Seedless underway."
+    seedless_util.service = "pybitmsg-i2p"
+    
+    try:
+        peersList = seedless_util.scrapePeers(myDestination)
+    except Exception as e:
+        print e
+    
+    print "%d peers scraped from Seedless." % len(peersList)
+    for dest in peersList:
+        peer = shared.Peer( str(dest) )
+        knownNodes[1][peer] = int( time.time() )
+
 #Create a packet
 def CreatePacket(command, payload=''):
     payload_length = len(payload)

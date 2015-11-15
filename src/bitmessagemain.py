@@ -65,6 +65,17 @@ def connectToStream(streamNumber):
         a.start()
 
 
+# This thread, of which there is only one, runs the hourly Seedless calls.
+class singleSeedless(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            time.sleep(60*60)
+            shared.do_scrapePeers()
+
 # This thread, of which there is only one, runs the API.
 class singleAPI(threading.Thread):
 
@@ -126,6 +137,11 @@ class Main:
         singleCleanerThread = singleCleaner()
         singleCleanerThread.daemon = True  # close the main program even if there are threads left
         singleCleanerThread.start()
+
+        # Start the Seedless Thread
+        singleSeedlessThread = singleSeedless()
+        singleSeedlessThread.daemon = True  # close the main program even if there are threads left
+        singleSeedlessThread.start()
 
         shared.reloadMyAddressHashes()
         shared.reloadBroadcastSendersForWhichImWatching()

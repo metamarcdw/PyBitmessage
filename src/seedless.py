@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from urllib2 import *
 from base64 import b64encode, urlsafe_b64decode
 

@@ -1,5 +1,6 @@
+#!/usr/bin/env python
+
 import seedless
-from time import sleep
 from random import choice
 from urllib2 import HTTPError
 from socket import timeout
@@ -26,7 +27,7 @@ def scrapePeers(dest):
                 randomServer = choice(seedless.knownSeedlessServers)
                 res = seedless.call_seedless_server(randomServer, cmd, query)
         except ( HTTPError, timeout ) as e:
-            print e
+            # print e
             continue
             
         currentServerList = result_to_list(res, 0)
