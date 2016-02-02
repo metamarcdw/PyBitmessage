@@ -40,6 +40,12 @@ sender and receiver of messages, from passive eavesdroppers like those running
 warrantless wiretapping programs.
 
 
+I2P Setup for PyBitmessage-I2P
+----------
+From v0.2.0, PyBitmessage-I2P requires the plugins Neodatis and Seedless to be installed on the I2P node.
+You may read: http://i2pwiki.i2p/index.php?title=Seedless
+
+
 Development
 ----------
 Bitmessage is a collaborative project. You are welcome to submit pull requests 
