@@ -4,6 +4,7 @@ from urllib2 import *
 from base64 import b64encode, urlsafe_b64decode
 
 knownSeedlessServers = [
+"zy37tq6ynucp3ufoyeegswqjaeofmj57cpm5ecd7nbanh2h6f2ja.b32.i2p",
 "4kecr3jdeiuihtuib7dgtsq4sd2jicxyiaclrn26xhvhqw7ocrma.b32.i2p",
 "msxukjtkaoscqarobbfijwhxvkzrxddvk2ddx5mdxmu7iytk6c4q.b32.i2p",
 "uksrtndz3zedszjofm624zqyuzft3qimdmxs4xlte6547fbk37aa.b32.i2p",
